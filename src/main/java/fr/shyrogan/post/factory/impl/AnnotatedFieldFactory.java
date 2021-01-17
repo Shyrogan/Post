@@ -1,0 +1,73 @@
+package fr.shyrogan.post.factory.impl;
+
+import fr.shyrogan.post.configuration.EventBusConfiguration;
+import fr.shyrogan.post.receiver.annotation.Subscribe;
+import fr.shyrogan.post.factory.ReceiverFactory;
+import fr.shyrogan.post.receiver.Receiver;
+import fr.shyrogan.post.receiver.ReceiverBuilder;
+import org.eclipse.collections.api.list.ImmutableList;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Consumer;
+
+import static org.eclipse.collections.impl.collector.Collectors2.toImmutableList;
+
+/**
+ * This {@link ReceiverFactory} looks for each field type {@link Receiver} or
+ * annotated {@link Consumer}.
+ *
+ * Careful, this factory will cause issues if you do not use receiver caching and try to unregister them !!
+ */
+@SuppressWarnings("ALL")
+public enum AnnotatedFieldFactory implements ReceiverFactory {
+    /** Singleton **/
+    INSTANCE;
+
+    /**
+     * Looks for the receiver fields.
+     *
+     * @param object The object.
+     * @return The receivers found.
+     */
+    @Override
+    public ImmutableList<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
+        return Arrays.stream(object.getClass().getDeclaredFields())
+                .map(f -> toReceiver(f, object))
+                .filter(Objects::nonNull)
+                .collect(toImmutableList());
+    }
+
+    /**
+     * Returns the field mapped to a receiver (if it was possible) or null.
+     *
+     * @param field The field.
+     * @param configuration The event bus configuration.
+     * @return The field mapped to a receiver (if it was possible) or null.
+     */
+    private static final Receiver toReceiver(Field field, Object instance) {
+        Subscribe annotation = field.getAnnotation(Subscribe.class);
+        if(annotation == null) return null;
+        if(Receiver.class.isAssignableFrom(field.getType())) {
+            try {
+                return (Receiver)field.get(instance);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        } else if(Consumer.class.isAssignableFrom(field.getType())) {
+            try {
+                // Savage solution but, would work, I guess.
+                return new ReceiverBuilder((Class) ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0])
+                        .withPriority(annotation.priority())
+                        .perform((Consumer)field.get(instance))
+                        .build();
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+}
