@@ -9,7 +9,8 @@ import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.factory.impl.AnnotatedFieldAndMethodFactory;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.utils.DynamicClassLoader;
-import org.eclipse.collections.api.list.MutableList;
+
+import java.util.List;
 
 /**
  * The default configuration (and greatest and a lot of cases!).
@@ -40,12 +41,12 @@ public class DefaultEventBusConfiguration implements EventBusConfiguration {
     }
 
     @Override
-    public MessageDispatcher dispatcherFor(MutableList<Receiver> receivers) {
+    public MessageDispatcher dispatcherFor(List<Receiver> receivers) {
         final int size = receivers == null ? 0 : receivers.size();
         // If it's an empty/null list, does nothing
         if(size == 0) return new DeadMessageDispatcher();
         // If it's a singleton then we don't need an iteration
-        else if(size == 1) return new SingletonMessageDispatcher(receivers.getFirst());
+        else if(size == 1) return new SingletonMessageDispatcher(receivers.get(0));
         // Otherwise just iterates through the list, simple as that.
         else return new IterativeMessageDispatcher(size, receivers);
     }

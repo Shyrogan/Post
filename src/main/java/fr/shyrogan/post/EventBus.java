@@ -3,15 +3,11 @@ package fr.shyrogan.post;
 import fr.shyrogan.post.configuration.EventBusConfiguration;
 import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
-import org.eclipse.collections.api.list.ImmutableList;
-import org.eclipse.collections.api.list.ListIterable;
-import org.eclipse.collections.api.list.MutableList;
-import org.eclipse.collections.api.map.MutableMap;
-import org.eclipse.collections.impl.list.mutable.FastList;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparingInt;
 
 /**
  * Post's {@link EventBus} and "entry-point" to the library, this event bus is based on eclipse collections
@@ -28,12 +24,12 @@ public class EventBus {
     /**
      * The map used to associate each receivers to their topic (message's class).
      */
-    private final MutableMap<Class<?>, MutableList<Receiver>> receiversMap;
+    private final Map<Class<?>, List<Receiver>> receiversMap;
 
     /**
      * A cache used to accelerate subscription/unsubscription.
      */
-    private final Map<Object, ImmutableList<Receiver>> factoryCache = new WeakHashMap<>();
+    private final Map<Object, List<Receiver>> factoryCache = new WeakHashMap<>();
 
     /**
      * Creates a new event bus with the default configuration.
@@ -49,7 +45,7 @@ public class EventBus {
      */
     public EventBus(EventBusConfiguration configuration) {
         this.configuration = configuration;
-        this.receiversMap = new UnifiedMap<>(configuration.initialReceiverMapCapacity());
+        this.receiversMap = new HashMap<>(configuration.initialReceiverMapCapacity());
     }
 
     /**
@@ -58,17 +54,19 @@ public class EventBus {
      * @param receiverList The receivers.
      * @return The event bus.
      */
-    public EventBus with(ListIterable<Receiver> receiverList) {
+    public EventBus with(List<Receiver> receiverList) {
         if(receiverList.isEmpty()) return this;
 
-        receiverList.groupBy(Receiver::getTopic)
-                .forEachKeyMultiValues((topic, receivers) -> receiversMap.put(topic,
-                        receiversMap
-                                .getOrDefault(topic, new FastList<>(configuration.initialReceiverListCapacity()))
-                                .withAll(receivers)
-                                .sortThisByInt(Receiver::getPriority)
-                                .reverseThis()
-                ));
+        receiverList
+                .stream()
+                .collect(Collectors.groupingBy(Receiver::getTopic))
+                .forEach((topic, receivers) -> {
+                    List<Receiver> registeredReceivers =  receiversMap
+                            .getOrDefault(topic, new ArrayList<>(configuration.initialReceiverListCapacity()));
+                    registeredReceivers.addAll(receivers);
+                    registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
+                    receiversMap.put(topic, registeredReceivers);
+                });
 
         return this;
     }
@@ -80,11 +78,11 @@ public class EventBus {
      * @return The event bus.
      */
     public EventBus with(Receiver receiver) {
-        receiversMap
-                .getOrDefault(receiver.getTopic(), new FastList<>(configuration.initialReceiverListCapacity()))
-                .with(receiver)
-                .sortThisByInt(Receiver::getPriority)
-                .reverseThis();
+        List<Receiver> registeredReceivers = receiversMap
+                .getOrDefault(receiver.getTopic(), new ArrayList<>(configuration.initialReceiverListCapacity()));
+        registeredReceivers.add(receiver);
+        registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
+        receiversMap.put(receiver.getTopic(), registeredReceivers);
 
         return this;
     }
@@ -99,7 +97,7 @@ public class EventBus {
     public EventBus with(Object object) {
         if(!configuration.allowCachingReceiver())
             return with(configuration.receiverFactory().lookInto(object, configuration));
-        ImmutableList<Receiver> receivers = factoryCache.get(object);
+        List<Receiver> receivers = factoryCache.get(object);
         if(receivers == null) {
             factoryCache.put(object, receivers = configuration.receiverFactory().lookInto(object, configuration));
         }
@@ -116,16 +114,20 @@ public class EventBus {
      * @param receiverList The receivers.
      * @return The event bus.
      */
-    public EventBus without(ListIterable<Receiver> receiverList) {
+    public EventBus without(List<Receiver> receiverList) {
         if(receiverList.isEmpty()) return this;
 
-        receiverList.groupBy(Receiver::getTopic)
-                .forEachKeyMultiValues((topic, receiver) -> receiversMap.ifPresentApply(topic, (receivers) ->
-                        receivers
-                                .withoutAll(receiver)
-                                .sortThisByInt(Receiver::getPriority)
-                                .reverseThis()
-                ));
+        receiverList
+                .stream()
+                .collect(Collectors.groupingBy(Receiver::getTopic))
+                .forEach((topic, receivers) -> {
+                    List<Receiver> registeredReceivers = receiversMap.get(topic);
+                    if(registeredReceivers != null) {
+                        registeredReceivers.removeAll(receivers);
+                        registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
+                        receiversMap.put(topic, registeredReceivers);
+                    }
+                });
 
         return this;
     }
@@ -140,12 +142,10 @@ public class EventBus {
      * @return The event bus.
      */
     public EventBus without(Receiver receiver) {
-        receiversMap.ifPresentApply(receiver.getTopic(), (receivers) ->
-                receivers
-                        .without(receiver)
-                        .sortThisByInt(Receiver::getPriority)
-                        .reverseThis()
-        );
+        List<Receiver> registeredReceivers = receiversMap.get(receiver.getTopic());
+        registeredReceivers.remove(receiver);
+        registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
+        receiversMap.put(receiver.getTopic(), registeredReceivers);
         return this;
     }
 
@@ -160,7 +160,7 @@ public class EventBus {
         if(!configuration.allowCachingReceiver())
             return without(configuration.receiverFactory().lookInto(object, configuration));
 
-        ImmutableList<Receiver> receivers = factoryCache.get(object);
+        List<Receiver> receivers = factoryCache.get(object);
         if(receivers == null) return this;
         return without(receivers);
     }

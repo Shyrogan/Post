@@ -43,12 +43,10 @@ public class ReceiverCompiler {
      * @param method The method type.
      * @return A receiver implementation compiled on the fly.
      */
-    public static byte[] forMethod(Class<?> parent, Class<?> topic, Method method) {
+    public static byte[] forMethod(String generatedClassName, Class<?> parent, Class<?> topic, Method method) {
         // A bench of utilities required later
         String parentType = getTypeName(parent);
         String topicType = getTypeName(topic);
-
-        String generatedClassName = "post_generated_" + parent.getName().replace('.', '_') + "_" + getUniqueMethodName(method);
 
         ClassNode NODE = new ClassNode();
         NODE.visit(V1_8, ACC_PUBLIC + ACC_SUPER,

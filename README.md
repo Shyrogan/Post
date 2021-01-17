@@ -6,7 +6,7 @@
 
  ## How does it work ?
 
-Using modern technologies such as [Eclipse Collections](https://www.eclipse.org/collections/) / [ASM](https://asm.ow2.io/),
+Using modern technologies such as [ASM](https://asm.ow2.io/),
 the Post Event Bus manages to reduce the cost of message dispatching.  
 It also adapts to certain specific situations (Such as publishing the message to one/none receivers).
 
@@ -15,7 +15,7 @@ It also adapts to certain specific situations (Such as publishing the message to
 We do not (yet) publish Post to Maven's Central Repository. It is available on [JitPack](https://jitpack.io).
 ````groovy
 dependencies {
-    compile group: 'com.github.Shyrogan', name: 'Post', version: '1.0.0'
+    compile group: 'com.github.Shyrogan', name: 'Post', version: '1.0.1'
 }
 ````
 

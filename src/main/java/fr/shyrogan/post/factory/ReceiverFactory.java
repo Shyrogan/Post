@@ -2,7 +2,8 @@ package fr.shyrogan.post.factory;
 
 import fr.shyrogan.post.configuration.EventBusConfiguration;
 import fr.shyrogan.post.receiver.Receiver;
-import org.eclipse.collections.api.list.ImmutableList;
+
+import java.util.List;
 
 /**
  * In most project, we might want to create only a few classes that holds each of our receivers.
@@ -19,6 +20,6 @@ public interface ReceiverFactory {
      * @param configuration The event bus configuration.
      * @return A list of each receiver.
      */
-    ImmutableList<Receiver> lookInto(Object object, EventBusConfiguration configuration);
+    List<Receiver> lookInto(Object object, EventBusConfiguration configuration);
 
 }

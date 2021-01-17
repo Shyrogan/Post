@@ -5,7 +5,8 @@ import fr.shyrogan.post.dispatcher.MessageDispatcher;
 import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.utils.DynamicClassLoader;
-import org.eclipse.collections.api.list.MutableList;
+
+import java.util.List;
 
 /**
  * Abstract representation of an event bus configuration.
@@ -58,7 +59,7 @@ public interface EventBusConfiguration {
      * @param receivers The list of receivers (can be null!)
      * @return A dispatcher factory function.
      */
-    default MessageDispatcher dispatcherFor(MutableList<Receiver> receivers) {
+    default MessageDispatcher dispatcherFor(List<Receiver> receivers) {
         return DEFAULT.dispatcherFor(receivers);
     }
 

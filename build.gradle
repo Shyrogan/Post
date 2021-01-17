@@ -3,15 +3,13 @@ plugins {
 }
 
 group 'fr.shyrogan'
-version '1.0.0'
+version '1.0.1'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile group: 'org.eclipse.collections', name: 'eclipse-collections', version: '10.4.0'
-
     // ASM
     compile group: 'org.ow2.asm', name: 'asm', version: '9.0'
     compile group: 'org.ow2.asm', name: 'asm-tree', version: '9.0'

@@ -4,15 +4,15 @@ import fr.shyrogan.post.configuration.EventBusConfiguration;
 import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.receiver.annotation.Subscribe;
-import org.eclipse.collections.api.list.ImmutableList;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import static fr.shyrogan.post.utils.ReceiverCompiler.forMethod;
 import static fr.shyrogan.post.utils.ReceiverCompiler.getUniqueMethodName;
-import static org.eclipse.collections.impl.collector.Collectors2.toImmutableList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This {@link ReceiverFactory} looks for each method annotated with the {@link Subscribe} annotation
@@ -31,11 +31,11 @@ public enum AnnotatedMethodFactory implements ReceiverFactory {
      * @return The receivers found.
      */
     @Override
-    public ImmutableList<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
+    public List<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
         return Arrays.stream(object.getClass().getDeclaredMethods())
                 .map(m -> toReceiver(m, object, configuration))
                 .filter(Objects::nonNull)
-                .collect(toImmutableList());
+                .collect(toList());
     }
 
     /**
@@ -48,12 +48,12 @@ public enum AnnotatedMethodFactory implements ReceiverFactory {
         Subscribe annotation = method.getAnnotation(Subscribe.class);
         if(annotation == null || method.getParameterTypes().length != 1) return null;
         Class<?> topicType = method.getParameterTypes()[0];
-        String targetClass = "post_generated_" + instance.getClass().getName().replace('.', '_') + "_" + getUniqueMethodName(method);
+        String generatedClassName = getUniqueMethodName(method);
 
         try {
             return (Receiver) configuration.classLoader()
-                    .lookForClass(targetClass)
-                    .orElse(configuration.classLoader().createClass(targetClass, forMethod(instance.getClass(), topicType, method)))
+                    .lookForClass(generatedClassName)
+                    .orElse(configuration.classLoader().createClass(generatedClassName, forMethod(generatedClassName, instance.getClass(), topicType, method)))
                     .getDeclaredConstructor(Object.class, Class.class, int.class)
                     .newInstance(instance, topicType, annotation.priority());
         } catch (ReflectiveOperationException e) {

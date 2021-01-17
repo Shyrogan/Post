@@ -3,7 +3,9 @@ package fr.shyrogan.post.factory.impl;
 import fr.shyrogan.post.configuration.EventBusConfiguration;
 import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
-import org.eclipse.collections.api.list.ImmutableList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This {@link ReceiverFactory} combines both {@link AnnotatedFieldFactory} and {@link AnnotatedMethodFactory}.
@@ -22,14 +24,12 @@ public enum AnnotatedFieldAndMethodFactory implements ReceiverFactory {
      * @return The receivers found.
      */
     @Override
-    public ImmutableList<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
+    public List<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
         // Combines both of the method and field factory.
-        return AnnotatedMethodFactory.INSTANCE
-                .lookInto(object, configuration)
-                .newWithAll(
-                        AnnotatedFieldFactory.INSTANCE
-                                .lookInto(object, configuration)
-                );
+        final List<Receiver> receivers = new ArrayList<>();
+        receivers.addAll(AnnotatedMethodFactory.INSTANCE.lookInto(object, configuration));
+        receivers.addAll(AnnotatedFieldFactory.INSTANCE.lookInto(object, configuration));
+        return receivers;
     }
 
 }

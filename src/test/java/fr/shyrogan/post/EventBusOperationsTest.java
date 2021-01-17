@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import java.util.ServiceLoader;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,7 +22,6 @@ public class EventBusOperationsTest {
     @BeforeEach
     void register() {
         bus.with(receiverContainer);
-        ServiceLoader.load(EventBusConfiguration.class);
     }
 
     @Test

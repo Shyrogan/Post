@@ -2,7 +2,8 @@ package fr.shyrogan.post.dispatcher.impl;
 
 import fr.shyrogan.post.dispatcher.MessageDispatcher;
 import fr.shyrogan.post.receiver.Receiver;
-import org.eclipse.collections.api.list.MutableList;
+
+import java.util.List;
 
 /**
  * A dispatcher which dispatches.. nothing.
@@ -11,9 +12,9 @@ import org.eclipse.collections.api.list.MutableList;
 public final class IterativeMessageDispatcher implements MessageDispatcher {
 
     private final int size;
-    private final MutableList<Receiver> receivers;
+    private final List<Receiver> receivers;
 
-    public IterativeMessageDispatcher(int size, MutableList<Receiver> receivers) {
+    public IterativeMessageDispatcher(int size, List<Receiver> receivers) {
         this.size = size;
         this.receivers = receivers;
     }

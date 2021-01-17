@@ -5,15 +5,15 @@ import fr.shyrogan.post.receiver.annotation.Subscribe;
 import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.receiver.ReceiverBuilder;
-import org.eclipse.collections.api.list.ImmutableList;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static org.eclipse.collections.impl.collector.Collectors2.toImmutableList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This {@link ReceiverFactory} looks for each field type {@link Receiver} or
@@ -33,11 +33,11 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
      * @return The receivers found.
      */
     @Override
-    public ImmutableList<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
+    public List<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
         return Arrays.stream(object.getClass().getDeclaredFields())
                 .map(f -> toReceiver(f, object))
                 .filter(Objects::nonNull)
-                .collect(toImmutableList());
+                .collect(toList());
     }
 
     /**
