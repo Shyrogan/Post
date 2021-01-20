@@ -22,11 +22,6 @@ public class DefaultEventBusConfiguration implements EventBusConfiguration {
     private final DynamicClassLoader classLoader = new DynamicClassLoader();
 
     @Override
-    public boolean allowCachingReceiver() {
-        return true;
-    }
-
-    @Override
     public int initialReceiverMapCapacity() {
         return 20;
     }

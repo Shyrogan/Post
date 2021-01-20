@@ -96,8 +96,6 @@ public class EventBus {
      * @return The event bus.
      */
     public EventBus subscribe(Object object) {
-        if(!configuration.allowCachingReceiver())
-            return subscribe(configuration.receiverFactory().lookInto(object, configuration));
         List<Receiver> receivers = factoryCache.get(object);
         if(receivers == null) {
             factoryCache.put(object, receivers = configuration.receiverFactory().lookInto(object, configuration));
@@ -158,9 +156,6 @@ public class EventBus {
      * @return The event bus.
      */
     public EventBus unsubscribe(Object object) {
-        if(!configuration.allowCachingReceiver())
-            return unsubscribe(configuration.receiverFactory().lookInto(object, configuration));
-
         List<Receiver> receivers = factoryCache.get(object);
         if(receivers == null) return this;
         return unsubscribe(receivers);

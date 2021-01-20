@@ -18,16 +18,6 @@ public interface EventBusConfiguration {
     static final EventBusConfiguration DEFAULT = new DefaultEventBusConfiguration();
 
     /**
-     * Caches the receiver found using {@link ReceiverFactory} to make future unsubscription/subscription fasters.
-     * Useful if you want to unsubscribe/subscribe subscriptions.
-     *
-     * @return Whether receiver cache is used or not.
-     */
-    default boolean allowCachingReceiver() {
-        return DEFAULT.allowCachingReceiver();
-    }
-
-    /**
      * Returns the initial capacity of the map used to associate each message class to its receivers.
      *
      * @return The initial capacity of the map used to associate each message class to its receivers.
