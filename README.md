@@ -15,7 +15,7 @@ It also adapts to certain specific situations (Such as publishing the message to
 We do not (yet) publish Post to Maven's Central Repository. It is available on [JitPack](https://jitpack.io).
 ````groovy
 dependencies {
-    compile group: 'com.github.Shyrogan', name: 'Post', version: '1.0.1'
+    compile group: 'com.github.Shyrogan', name: 'Post', version: '1.1.0'
 }
 ````
 
