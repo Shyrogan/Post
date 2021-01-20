@@ -17,7 +17,7 @@ public final class SingletonMessageDispatcher implements MessageDispatcher {
 
     @Override
     public void dispatch(Object message) {
-        receiver.call(message);
+        receiver.onReceive(message);
     }
 
 }

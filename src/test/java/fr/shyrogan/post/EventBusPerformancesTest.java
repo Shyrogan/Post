@@ -13,7 +13,7 @@ public class EventBusPerformancesTest {
     @BeforeEach
     void registerReceiver() {
         for(int i = 0; i < 1e1; i++) {
-            bus.with(new DummyReceiverContainer());
+            bus.subscribe(new DummyReceiverContainer());
         }
     }
 

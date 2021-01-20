@@ -6,6 +6,7 @@ import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.utils.DynamicClassLoader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,7 +60,7 @@ public interface EventBusConfiguration {
      * @param receivers The list of receivers (can be null!)
      * @return A dispatcher factory function.
      */
-    default MessageDispatcher dispatcherFor(List<Receiver> receivers) {
+    default MessageDispatcher dispatcherFor(ArrayList<Receiver> receivers) {
         return DEFAULT.dispatcherFor(receivers);
     }
 

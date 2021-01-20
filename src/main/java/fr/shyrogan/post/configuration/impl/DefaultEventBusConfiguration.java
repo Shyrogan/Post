@@ -10,6 +10,7 @@ import fr.shyrogan.post.factory.impl.AnnotatedFieldAndMethodFactory;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.utils.DynamicClassLoader;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,7 +42,7 @@ public class DefaultEventBusConfiguration implements EventBusConfiguration {
     }
 
     @Override
-    public MessageDispatcher dispatcherFor(List<Receiver> receivers) {
+    public MessageDispatcher dispatcherFor(ArrayList<Receiver> receivers) {
         final int size = receivers == null ? 0 : receivers.size();
         // If it's an empty/null list, does nothing
         if(size == 0) return new DeadMessageDispatcher();

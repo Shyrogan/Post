@@ -121,8 +121,8 @@ public class ReceiverCompiler {
         GET_PRIORITY_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "priority", "I"));
         GET_PRIORITY_METHOD.instructions.add(new InsnNode(IRETURN));
 
-        // Implements the call(T) method.
-        MethodNode CALL_METHOD = new MethodNode(ACC_PUBLIC, "call", "(L" + topicType + ";)V", null, null);
+        // Implements the onReceive(T) method.
+        MethodNode CALL_METHOD = new MethodNode(ACC_PUBLIC, "onReceive", "(L" + topicType + ";)V", null, null);
         CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         CALL_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "parent", "L" + parentType + ";"));
         CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
@@ -130,7 +130,7 @@ public class ReceiverCompiler {
         CALL_METHOD.instructions.add(new InsnNode(RETURN));
 
         // Casts the type and then call the call(T) method.
-        MethodNode CASTED_CALL_METHOD = new MethodNode(ACC_PUBLIC, "call", "(L" + OBJECT_TYPE + ";)V", null, null);
+        MethodNode CASTED_CALL_METHOD = new MethodNode(ACC_PUBLIC, "onReceive", "(L" + OBJECT_TYPE + ";)V", null, null);
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
         CASTED_CALL_METHOD.instructions.add(new TypeInsnNode(CHECKCAST, topicType));

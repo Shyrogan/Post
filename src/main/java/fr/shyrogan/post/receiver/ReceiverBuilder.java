@@ -92,7 +92,7 @@ public class ReceiverBuilder<T> {
         }
 
         @Override
-        public void call(T message) {
+        public void onReceive(T message) {
             consumer.accept(message);
         }
 
@@ -133,7 +133,7 @@ public class ReceiverBuilder<T> {
         }
 
         @Override
-        public void call(T message) {
+        public void onReceive(T message) {
             if(filter.apply(message)) consumer.accept(message);
         }
 

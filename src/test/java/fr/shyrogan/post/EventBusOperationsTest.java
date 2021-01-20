@@ -1,12 +1,10 @@
 package fr.shyrogan.post;
 
-import fr.shyrogan.post.configuration.EventBusConfiguration;
 import fr.shyrogan.post.receiver.annotation.Subscribe;
 import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.receiver.ReceiverBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
@@ -21,7 +19,7 @@ public class EventBusOperationsTest {
 
     @BeforeEach
     void register() {
-        bus.with(receiverContainer);
+        bus.subscribe(receiverContainer);
     }
 
     @Test

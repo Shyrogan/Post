@@ -29,6 +29,6 @@ public interface Receiver<T> {
      *
      * @param message The message's instance
      */
-    void call(T message);
+    void onReceive(T message);
 
 }

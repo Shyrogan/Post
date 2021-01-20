@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Post's {@link EventBus} and "entry-point" to the library, this event bus is based on eclipse collections
@@ -24,7 +25,7 @@ public class EventBus {
     /**
      * The map used to associate each receivers to their topic (message's class).
      */
-    private final Map<Class<?>, List<Receiver>> receiversMap;
+    private final Map<Class<?>, ArrayList<Receiver>> receiversMap;
 
     /**
      * A cache used to accelerate subscription/unsubscription.
@@ -54,14 +55,14 @@ public class EventBus {
      * @param receiverList The receivers.
      * @return The event bus.
      */
-    public EventBus with(List<Receiver> receiverList) {
+    public EventBus subscribe(List<Receiver> receiverList) {
         if(receiverList.isEmpty()) return this;
 
         receiverList
                 .stream()
                 .collect(Collectors.groupingBy(Receiver::getTopic))
                 .forEach((topic, receivers) -> {
-                    List<Receiver> registeredReceivers =  receiversMap
+                    ArrayList<Receiver> registeredReceivers =  receiversMap
                             .getOrDefault(topic, new ArrayList<>(configuration.initialReceiverListCapacity()));
                     registeredReceivers.addAll(receivers);
                     registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
@@ -77,8 +78,8 @@ public class EventBus {
      * @param receiver The receiver.
      * @return The event bus.
      */
-    public EventBus with(Receiver receiver) {
-        List<Receiver> registeredReceivers = receiversMap
+    public EventBus subscribe(Receiver receiver) {
+        ArrayList<Receiver> registeredReceivers = receiversMap
                 .getOrDefault(receiver.getTopic(), new ArrayList<>(configuration.initialReceiverListCapacity()));
         registeredReceivers.add(receiver);
         registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
@@ -94,15 +95,15 @@ public class EventBus {
      * @param object The object.
      * @return The event bus.
      */
-    public EventBus with(Object object) {
+    public EventBus subscribe(Object object) {
         if(!configuration.allowCachingReceiver())
-            return with(configuration.receiverFactory().lookInto(object, configuration));
+            return subscribe(configuration.receiverFactory().lookInto(object, configuration));
         List<Receiver> receivers = factoryCache.get(object);
         if(receivers == null) {
             factoryCache.put(object, receivers = configuration.receiverFactory().lookInto(object, configuration));
         }
 
-        return with(receivers);
+        return subscribe(receivers);
     }
 
     /**
@@ -114,14 +115,14 @@ public class EventBus {
      * @param receiverList The receivers.
      * @return The event bus.
      */
-    public EventBus without(List<Receiver> receiverList) {
+    public EventBus unsubscribe(List<Receiver> receiverList) {
         if(receiverList.isEmpty()) return this;
 
         receiverList
                 .stream()
                 .collect(Collectors.groupingBy(Receiver::getTopic))
                 .forEach((topic, receivers) -> {
-                    List<Receiver> registeredReceivers = receiversMap.get(topic);
+                    ArrayList<Receiver> registeredReceivers = receiversMap.get(topic);
                     if(registeredReceivers != null) {
                         registeredReceivers.removeAll(receivers);
                         registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
@@ -141,8 +142,8 @@ public class EventBus {
      * @param receiver The receiver.
      * @return The event bus.
      */
-    public EventBus without(Receiver receiver) {
-        List<Receiver> registeredReceivers = receiversMap.get(receiver.getTopic());
+    public EventBus unsubscribe(Receiver receiver) {
+        ArrayList<Receiver> registeredReceivers = receiversMap.get(receiver.getTopic());
         registeredReceivers.remove(receiver);
         registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
         receiversMap.put(receiver.getTopic(), registeredReceivers);
@@ -156,13 +157,13 @@ public class EventBus {
      * @param object The object.
      * @return The event bus.
      */
-    public EventBus without(Object object) {
+    public EventBus unsubscribe(Object object) {
         if(!configuration.allowCachingReceiver())
-            return without(configuration.receiverFactory().lookInto(object, configuration));
+            return unsubscribe(configuration.receiverFactory().lookInto(object, configuration));
 
         List<Receiver> receivers = factoryCache.get(object);
         if(receivers == null) return this;
-        return without(receivers);
+        return unsubscribe(receivers);
     }
 
     /**
@@ -177,11 +178,11 @@ public class EventBus {
     }
 
     /**
-     * Drains the event bus (basically clears the cache and subscriptions).
+     * Clears the event bus (basically clears the cache and subscriptions).
      *
      * @return The event bus drained.
      */
-    public EventBus drain() {
+    public EventBus clear() {
         receiversMap.clear();
         factoryCache.clear();
         return this;
@@ -192,6 +193,15 @@ public class EventBus {
      */
     @Override
     public String toString() {
-        return "EventBus{" + "receiversMap=" + receiversMap + '}';
+        final String values = receiversMap.entrySet().stream()
+                .map(e ->
+                        e.getKey().getSimpleName() + "=" + e.getValue().stream()
+                                .map(Receiver::toString)
+                                .collect(joining(","))
+                )
+                .collect(joining(", ", "{", "}"));
+
+        return "EventBus{" + "receivers=" + values + '}';
     }
+
 }
