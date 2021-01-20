@@ -134,7 +134,7 @@ public class ReceiverCompiler {
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
         CASTED_CALL_METHOD.instructions.add(new TypeInsnNode(CHECKCAST, topicType));
-        CASTED_CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, generatedClassName, "call", "(L" + topicType + ";)V", false));
+        CASTED_CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, generatedClassName, "onReceive", "(L" + topicType + ";)V", false));
         CASTED_CALL_METHOD.instructions.add(new InsnNode(RETURN));
 
         // Put them all together
