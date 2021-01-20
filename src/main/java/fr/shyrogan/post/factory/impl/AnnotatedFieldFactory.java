@@ -51,12 +51,14 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
         Subscribe annotation = field.getAnnotation(Subscribe.class);
         if(annotation == null) return null;
         if(Receiver.class.isAssignableFrom(field.getType())) {
+            if(!field.isAccessible()) field.setAccessible(true);
             try {
                 return (Receiver)field.get(instance);
             } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
         } else if(Consumer.class.isAssignableFrom(field.getType())) {
+            if(!field.isAccessible()) field.setAccessible(true);
             try {
                 // Savage solution but, would work, I guess.
                 return new ReceiverBuilder((Class) ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0])
