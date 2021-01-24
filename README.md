@@ -1,8 +1,8 @@
-<h1 align="center">Post</h1>
+[license-badge]: https://img.shields.io/github/license/Shyrogan/Post.svg
 
-<div align="center">
-  <strong>🚀 A powerful Event Bus, nothing more.</strong>
-</div>
+# Post [![License][license-badge]](/LICENSE)
+
+🚀 A powerful and configurable Event Bus, nothing more.
 
  ## How does it work ?
 
@@ -12,14 +12,38 @@ It also adapts to certain specific situations (Such as publishing the message to
 
  ## Installation
 
-We do not (yet) publish Post to Maven's Central Repository. It is available on [JitPack](https://jitpack.io).
+Thanks to GitHub, you can simply add the repository:
+````groovy
+repositories {
+    maven {
+        url 'https://maven.pkg.github.com/Shyrogan/Post'
+    }
+}
+````
+followed by the dependency:
 ````groovy
 dependencies {
-    compile group: 'com.github.Shyrogan', name: 'Post', version: '1.1.0'
+    compile group: 'fr.shyrogan', name: 'post', version: '1.1.1'
 }
 ````
 
-Once you added the library to your project, you can simply create a new ``EventBus`` instance and use it!
-If you don't know how to use the library, dive into the tests available in the ``src/test`` folder.
-  
-_This README is still really incomplete, I will try my best to write it later!_
+ ## Getting started
+
+Once the library is installed, you simply need to create the EventBus instance:
+````java
+final EventBus bus = new EventBus(/** Your configuration (if you have one) goes here**/);
+````
+Create your class containing your receivers:
+````java
+public class MyReceivers {
+    @Subscribe
+    public void onStringMessage(String message) {
+        // In this example, the onStringMessage method will be called everytime
+        // a string is published in to the EventBus.
+    }
+}
+````
+and dispatch your messages:
+````java
+bus.dispatch("My message!");
+````

@@ -5,9 +5,11 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 
+import static java.lang.reflect.Modifier.isStatic;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.getMethodDescriptor;
@@ -123,13 +125,21 @@ public class ReceiverCompiler {
 
         // Implements the onReceive(T) method.
         MethodNode CALL_METHOD = new MethodNode(ACC_PUBLIC, "onReceive", "(L" + topicType + ";)V", null, null);
-        CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
-        CALL_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "parent", "L" + parentType + ";"));
-        CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
-        CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, parentType, method.getName(), getMethodDescriptor(method)));
-        CALL_METHOD.instructions.add(new InsnNode(RETURN));
+        if(isStatic(method.getModifiers())) {
+            // If its static, there are less instructions to call it.
+            CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
+            CALL_METHOD.instructions.add(new MethodInsnNode(INVOKESTATIC, parentType, method.getName(), getMethodDescriptor(method), false));
+            CALL_METHOD.instructions.add(new InsnNode(RETURN));
+        } else {
+            // If its static
+            CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
+            CALL_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "parent", "L" + parentType + ";"));
+            CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
+            CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, parentType, method.getName(), getMethodDescriptor(method)));
+            CALL_METHOD.instructions.add(new InsnNode(RETURN));
+        }
 
-        // Casts the type and then call the call(T) method.
+        // Casts the type and then call.
         MethodNode CASTED_CALL_METHOD = new MethodNode(ACC_PUBLIC, "onReceive", "(L" + OBJECT_TYPE + ";)V", null, null);
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));

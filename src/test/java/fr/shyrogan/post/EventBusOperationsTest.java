@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
 
+import static fr.shyrogan.post.EventBusOperationsTest.DummyReceiverContainer.hasReceivedMethod;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Basic operation test")
@@ -27,7 +28,7 @@ public class EventBusOperationsTest {
         bus.dispatch("a");
         assertTrue(receiverContainer.hasReceivedMessageOnBuilder);
         assertTrue(receiverContainer.hasReceivedMessageOnConsumer);
-        assertTrue(receiverContainer.hasReceivedMethod);
+        assertTrue(hasReceivedMethod);
     }
 
     @Test
@@ -40,7 +41,7 @@ public class EventBusOperationsTest {
     public static class DummyReceiverContainer {
         public boolean hasReceivedMessageOnBuilder = false;
         public boolean hasReceivedMessageOnConsumer = false;
-        public boolean hasReceivedMethod = false;
+        public static boolean hasReceivedMethod = false;
         public String last = "";
 
         @Subscribe(priority = -10)
