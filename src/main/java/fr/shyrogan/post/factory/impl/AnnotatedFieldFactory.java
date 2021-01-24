@@ -18,10 +18,8 @@ import static java.util.stream.Collectors.toList;
 /**
  * This {@link ReceiverFactory} looks for each field type {@link Receiver} or
  * annotated {@link Consumer}.
- *
- * Careful, this factory will cause issues if you do not use receiver caching and try to unregister them !!
  */
-@SuppressWarnings("ALL")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public enum AnnotatedFieldFactory implements ReceiverFactory {
     /** Singleton **/
     INSTANCE;
@@ -44,10 +42,9 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
      * Returns the field mapped to a receiver (if it was possible) or null.
      *
      * @param field The field.
-     * @param configuration The event bus configuration.
      * @return The field mapped to a receiver (if it was possible) or null.
      */
-    private static final Receiver toReceiver(Field field, Object instance) {
+    private static Receiver toReceiver(Field field, Object instance) {
         Subscribe annotation = field.getAnnotation(Subscribe.class);
         if(annotation == null) return null;
         if(Receiver.class.isAssignableFrom(field.getType())) {

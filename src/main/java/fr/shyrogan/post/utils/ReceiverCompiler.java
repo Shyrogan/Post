@@ -40,6 +40,7 @@ public class ReceiverCompiler {
      *     call(Object): A simple method that check cast if the object is T and then calls call(T)
      * </p>
      *
+     * @param generatedClassName The generated class name.
      * @param parent The parent type.
      * @param topic The topic type.
      * @param method The method type.

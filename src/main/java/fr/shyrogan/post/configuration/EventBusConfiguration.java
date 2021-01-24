@@ -7,7 +7,6 @@ import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.utils.DynamicClassLoader;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Abstract representation of an event bus configuration.

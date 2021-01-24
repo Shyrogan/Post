@@ -23,7 +23,7 @@ repositories {
 followed by the dependency:
 ````groovy
 dependencies {
-    compile group: 'fr.shyrogan', name: 'post', version: '1.1.1'
+    compile group: 'fr.shyrogan', name: 'post', version: '1.1.2'
 }
 ````
 

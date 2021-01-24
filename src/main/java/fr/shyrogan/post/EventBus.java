@@ -5,14 +5,13 @@ import fr.shyrogan.post.factory.ReceiverFactory;
 import fr.shyrogan.post.receiver.Receiver;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.joining;
 
 /**
- * Post's {@link EventBus} and "entry-point" to the library, this event bus is based on eclipse collections
- * and provides a powerful yet as configurable as possible place to dispatch message.
+ * Post's {@link EventBus} and "entry-point" to the library, provides a powerful yet as configurable
+ * as possible place to dispatch message.
  */
 @SuppressWarnings("ALL")
 public class EventBus {
@@ -56,19 +55,7 @@ public class EventBus {
      * @return The event bus.
      */
     public EventBus subscribe(List<Receiver> receiverList) {
-        if(receiverList.isEmpty()) return this;
-
-        receiverList
-                .stream()
-                .collect(Collectors.groupingBy(Receiver::getTopic))
-                .forEach((topic, receivers) -> {
-                    ArrayList<Receiver> registeredReceivers =  receiversMap
-                            .getOrDefault(topic, new ArrayList<>(configuration.initialReceiverListCapacity()));
-                    registeredReceivers.addAll(receivers);
-                    registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
-                    receiversMap.put(topic, registeredReceivers);
-                });
-
+        receiverList.forEach(this::subscribe);
         return this;
     }
 
@@ -89,7 +76,7 @@ public class EventBus {
     }
 
     /**
-     * Looks for each {@link Receiver} inside of specified object using the {@link ReceiverFactory}
+     * Inspects the object in quest of {@link Receiver} using the {@link ReceiverFactory}
      * and then registers them.
      *
      * @param object The object.
@@ -100,56 +87,39 @@ public class EventBus {
         if(receivers == null) {
             factoryCache.put(object, receivers = configuration.receiverFactory().lookInto(object, configuration));
         }
-
         return subscribe(receivers);
     }
 
     /**
      * Unregisters specified receivers to the event bus, allowing these receivers to be "ignored". They can still
      * be registered again.
-     * Be careful to either implement the {@link Object#equals(Object)} method or unregister the correct receiver instance,
-     * if it is being recreated without the equals method, this will not work!
      *
      * @param receiverList The receivers.
      * @return The event bus.
      */
     public EventBus unsubscribe(List<Receiver> receiverList) {
-        if(receiverList.isEmpty()) return this;
-
-        receiverList
-                .stream()
-                .collect(Collectors.groupingBy(Receiver::getTopic))
-                .forEach((topic, receivers) -> {
-                    ArrayList<Receiver> registeredReceivers = receiversMap.get(topic);
-                    if(registeredReceivers != null) {
-                        registeredReceivers.removeAll(receivers);
-                        registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
-                        receiversMap.put(topic, registeredReceivers);
-                    }
-                });
-
+        receiverList.forEach(this::unsubscribe);
         return this;
     }
 
     /**
      * Unregisters specified receiver to the event bus, allowing that receiver to be "ignored". It can still
      * be registered again.
-     * Be careful to either implement the {@link Object#equals(Object)} method or unregister the correct receiver instance,
-     * if it is being recreated without the equals method, this will not work!
      *
      * @param receiver The receiver.
      * @return The event bus.
      */
     public EventBus unsubscribe(Receiver receiver) {
         ArrayList<Receiver> registeredReceivers = receiversMap.get(receiver.getTopic());
-        registeredReceivers.remove(receiver);
-        registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
-        receiversMap.put(receiver.getTopic(), registeredReceivers);
+        if(registeredReceivers != null) {
+            registeredReceivers.remove(receiver);
+            receiversMap.put(receiver.getTopic(), registeredReceivers);
+        }
         return this;
     }
 
     /**
-     * Looks for each {@link Receiver} inside of specified object using the {@link ReceiverFactory}
+     * Inspects the object in quest of {@link Receiver} using the {@link ReceiverFactory}
      * and then unregisters them.
      *
      * @param object The object.
