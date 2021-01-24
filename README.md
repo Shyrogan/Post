@@ -43,7 +43,11 @@ public class MyReceivers {
     }
 }
 ````
-and dispatch your messages:
+and register it:
+````java
+bus.subscribe(new MyReceivers());
+````
+finally, dispatch your messages:
 ````java
 bus.dispatch("My message!");
 ````
