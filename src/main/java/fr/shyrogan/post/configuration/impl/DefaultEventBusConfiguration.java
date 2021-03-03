@@ -11,7 +11,10 @@ import fr.shyrogan.post.receiver.Receiver;
 import fr.shyrogan.post.utils.DynamicClassLoader;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * The default configuration (and greatest and a lot of cases!).
@@ -19,7 +22,7 @@ import java.util.List;
 @SuppressWarnings("ALL")
 public class DefaultEventBusConfiguration implements EventBusConfiguration {
 
-    private final DynamicClassLoader classLoader = new DynamicClassLoader();
+    private final static DynamicClassLoader CLASS_LOADER = new DynamicClassLoader();
 
     @Override
     public int initialReceiverMapCapacity() {
@@ -49,6 +52,6 @@ public class DefaultEventBusConfiguration implements EventBusConfiguration {
 
     @Override
     public DynamicClassLoader classLoader() {
-        return classLoader;
+        return CLASS_LOADER;
     }
 }

@@ -21,11 +21,11 @@ public class EventBusPerformancesTest {
     void dispatch() {
         long begin = System.nanoTime();
         String message = "Hey!";
-        for(int i = 0; i < 1e6; i++) {
+        for(int i = 0; i < 1e8; i++) {
             bus.dispatch(message);
         }
         long end   = System.nanoTime();
-        System.out.println("Post: " + (end - begin) * 1.0e-6 + "ms for 1e6 dispatch to 10 receivers.");
+        //System.out.println("Post: " + (end - begin) * 1.0e-6 + "ms for 1e6 dispatch to 10 receivers.");
     }
 
     public static class DummyReceiverContainer {
