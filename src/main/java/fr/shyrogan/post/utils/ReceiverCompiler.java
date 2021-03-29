@@ -185,7 +185,7 @@ public class ReceiverCompiler {
         for (Parameter parameter : method.getParameters()) {
             parameters.append(parameter.getType().getName().replace('.', '_'));
         }
-        return method.getName() + parameters.toString();
+        return method.getDeclaringClass().getName().replace('.', '_') + method.getName() + parameters.toString();
     }
 
 }
