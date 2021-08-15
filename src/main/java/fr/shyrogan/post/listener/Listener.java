@@ -1,4 +1,4 @@
-package fr.shyrogan.post.receiver;
+package fr.shyrogan.post.listener;
 
 import fr.shyrogan.post.EventBus;
 
@@ -7,28 +7,27 @@ import fr.shyrogan.post.EventBus;
  *
  * @param <T> The message type.
  */
-public interface Receiver<T> {
+public interface Listener<T> {
 
     /**
      * Returns the topic of specified message.
      *
      * @return The topic of this receiver.
      */
-    Class<T> getTopic();
+    Class<T> topic();
 
     /**
-     * Returns a number used to prioritize some receivers.
-     * Higher priority means it will run first.
+     * Returns a number used to prioritize some receivers. Higher priority means it will run first.
      *
      * @return Number
      */
-    int getPriority();
+    int priority();
 
     /**
      * Method invoked to call this receiver.
      *
      * @param message The message's instance
      */
-    void onReceive(T message);
+    void receive(T message);
 
 }

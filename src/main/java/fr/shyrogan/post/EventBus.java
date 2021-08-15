@@ -1,17 +1,19 @@
 package fr.shyrogan.post;
 
 import fr.shyrogan.post.configuration.EventBusConfiguration;
+import fr.shyrogan.post.dispatcher.MessageDispatcher;
 import fr.shyrogan.post.factory.ReceiverFactory;
-import fr.shyrogan.post.receiver.Receiver;
+import fr.shyrogan.post.listener.Listener;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.joining;
 
 /**
- * Post's {@link EventBus} and "entry-point" to the library, provides a powerful yet as configurable
- * as possible place to dispatch message.
+ * Post's {@link EventBus} and "entry-point" to the library, provides a powerful yet as configurable as possible place
+ * to dispatch message.
  */
 @SuppressWarnings("ALL")
 public class EventBus {
@@ -24,12 +26,13 @@ public class EventBus {
     /**
      * The map used to associate each receivers to their topic (message's class).
      */
-    private final Map<Class<?>, ArrayList<Receiver>> receiversMap;
+    private final Map<Class<?>, ArrayList<Listener>> receiversMap;
+    private final Map<Class<?>, MessageDispatcher>   dispatcherMap;
 
     /**
      * A cache used to accelerate subscription/unsubscription.
      */
-    private final Map<Object, List<Receiver>> factoryCache = new WeakHashMap<>();
+    private final Map<Object, List<Listener>> factoryCache = new WeakHashMap<>();
 
     /**
      * Creates a new event bus with the default configuration.
@@ -45,90 +48,107 @@ public class EventBus {
      */
     public EventBus(EventBusConfiguration configuration) {
         this.configuration = configuration;
-        this.receiversMap = new HashMap<>(configuration.initialReceiverMapCapacity());
+        this.receiversMap  = new ConcurrentHashMap<>(configuration.initialReceiverMapCapacity());
+        this.dispatcherMap = new ConcurrentHashMap<>();
     }
 
     /**
      * Registers specified receivers to the event bus, allowing them to receive published messages.
      *
-     * @param receiverList The receivers.
+     * @param listenerList The receivers.
+     *
      * @return The event bus.
      */
-    public EventBus subscribe(List<Receiver> receiverList) {
-        receiverList.forEach(this::subscribe);
+    public EventBus subscribe(List<Listener> listenerList) {
+        listenerList.forEach(this::subscribe);
         return this;
     }
 
     /**
      * Registers specified receiver to the event bus, allowing it to receive published messages.
      *
-     * @param receiver The receiver.
+     * @param listener The receiver.
+     *
      * @return The event bus.
      */
-    public EventBus subscribe(Receiver receiver) {
-        ArrayList<Receiver> registeredReceivers = receiversMap
-                .getOrDefault(receiver.getTopic(), new ArrayList<>(configuration.initialReceiverListCapacity()));
-        registeredReceivers.add(receiver);
-        registeredReceivers.sort(comparingInt(r -> -r.getPriority()));
-        receiversMap.put(receiver.getTopic(), registeredReceivers);
+    public EventBus subscribe(Listener listener) {
+        configuration.executorService().submit(() -> {
+            ArrayList<Listener> registeredListeners = receiversMap
+                    .getOrDefault(listener.topic(), new ArrayList<>(configuration.initialReceiverListCapacity()));
+            registeredListeners.add(listener);
+            registeredListeners.sort(comparingInt(r -> -r.priority()));
+            receiversMap.put(listener.topic(), registeredListeners);
+            dispatcherMap.put(listener.topic(), configuration.dispatcherFor(receiversMap.get(listener.topic())));
+        });
 
         return this;
     }
 
     /**
-     * Inspects the object in quest of {@link Receiver} using the {@link ReceiverFactory}
-     * and then registers them.
+     * Inspects the object in quest of {@link Listener} using the {@link ReceiverFactory} and then registers them.
      *
      * @param object The object.
+     *
      * @return The event bus.
      */
     public EventBus subscribe(Object object) {
-        List<Receiver> receivers = factoryCache.get(object);
-        if(receivers == null) {
-            factoryCache.put(object, receivers = configuration.receiverFactory().lookInto(object, configuration));
+        List<Listener> listeners = factoryCache.get(object);
+        if (listeners == null) {
+            factoryCache.put(object, listeners = configuration.receiverFactory().lookInto(object, configuration));
         }
-        return subscribe(receivers);
+        return subscribe(listeners);
     }
 
     /**
-     * Unregisters specified receivers to the event bus, allowing these receivers to be "ignored". They can still
-     * be registered again.
+     * Unregisters specified receivers to the event bus, allowing these receivers to be "ignored". They can still be
+     * registered again.
      *
-     * @param receiverList The receivers.
+     * @param listenerList The receivers.
+     *
      * @return The event bus.
      */
-    public EventBus unsubscribe(List<Receiver> receiverList) {
-        receiverList.forEach(this::unsubscribe);
+    public EventBus unsubscribe(List<Listener> listenerList) {
+        listenerList.forEach(this::unsubscribe);
         return this;
     }
 
     /**
-     * Unregisters specified receiver to the event bus, allowing that receiver to be "ignored". It can still
-     * be registered again.
+     * Unregisters specified receiver to the event bus, allowing that receiver to be "ignored". It can still be
+     * registered again.
      *
-     * @param receiver The receiver.
+     * @param listener The receiver.
+     *
      * @return The event bus.
      */
-    public EventBus unsubscribe(Receiver receiver) {
-        ArrayList<Receiver> registeredReceivers = receiversMap.get(receiver.getTopic());
-        if(registeredReceivers != null) {
-            registeredReceivers.remove(receiver);
-            receiversMap.put(receiver.getTopic(), registeredReceivers);
-        }
+    public EventBus unsubscribe(Listener listener) {
+        configuration.executorService().submit(() -> {
+            ArrayList<Listener> registeredListeners = receiversMap.get(listener.topic());
+            if (registeredListeners != null) {
+                registeredListeners.remove(listener);
+
+                if (registeredListeners.isEmpty()) {
+                    receiversMap.remove(listener.topic());
+                    dispatcherMap.remove(listener.topic());
+                } else {
+                    dispatcherMap.put(listener.topic(), configuration.dispatcherFor(receiversMap.get(listener.topic())));
+                }
+            }
+        });
+
         return this;
     }
 
     /**
-     * Inspects the object in quest of {@link Receiver} using the {@link ReceiverFactory}
-     * and then unregisters them.
+     * Inspects the object in quest of {@link Listener} using the {@link ReceiverFactory} and then unregisters them.
      *
      * @param object The object.
+     *
      * @return The event bus.
      */
     public EventBus unsubscribe(Object object) {
-        List<Receiver> receivers = factoryCache.get(object);
-        if(receivers == null) return this;
-        return unsubscribe(receivers);
+        List<Listener> listeners = factoryCache.get(object);
+        if (listeners == null) return this;
+        return unsubscribe(listeners);
     }
 
     /**
@@ -137,8 +157,8 @@ public class EventBus {
      * @param message Message.
      */
     public void dispatch(Object message) {
-        configuration
-                .dispatcherFor(receiversMap.get(message.getClass()))
+        dispatcherMap
+                .get(message.getClass())
                 .dispatch(message);
     }
 
@@ -161,7 +181,7 @@ public class EventBus {
         final String values = receiversMap.entrySet().stream()
                 .map(e ->
                         e.getKey().getSimpleName() + "=" + e.getValue().stream()
-                                .map(Receiver::toString)
+                                .map(Listener::toString)
                                 .collect(joining(","))
                 )
                 .collect(joining(", ", "{", "}"));

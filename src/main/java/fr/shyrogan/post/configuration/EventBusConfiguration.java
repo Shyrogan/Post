@@ -3,10 +3,12 @@ package fr.shyrogan.post.configuration;
 import fr.shyrogan.post.configuration.impl.DefaultEventBusConfiguration;
 import fr.shyrogan.post.dispatcher.MessageDispatcher;
 import fr.shyrogan.post.factory.ReceiverFactory;
-import fr.shyrogan.post.receiver.Receiver;
+import fr.shyrogan.post.listener.Listener;
 import fr.shyrogan.post.utils.DynamicClassLoader;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Abstract representation of an event bus configuration.
@@ -31,11 +33,11 @@ public interface EventBusConfiguration {
      * @return The initial capacity of the list that contains all of our receivers for a specific topic.
      */
     default int initialReceiverListCapacity() {
-        return DEFAULT.initialReceiverListCapacity();}
+        return DEFAULT.initialReceiverListCapacity();
+    }
 
     /**
-     * Returns the receiver factory used to create receiver from an object instance.
-     * (From its fields/methods).
+     * Returns the receiver factory used to create receiver from an object instance. (From its fields/methods).
      *
      * @return The receiver factory.
      */
@@ -46,11 +48,12 @@ public interface EventBusConfiguration {
     /**
      * Provides a function that returns a dispatcher based on the receiver list.
      *
-     * @param receivers The list of receivers (can be null!)
+     * @param listeners The list of receivers (can be null!)
+     *
      * @return A dispatcher factory function.
      */
-    default MessageDispatcher dispatcherFor(ArrayList<Receiver> receivers) {
-        return DEFAULT.dispatcherFor(receivers);
+    default MessageDispatcher dispatcherFor(ArrayList<Listener> listeners) {
+        return DEFAULT.dispatcherFor(listeners);
     }
 
     /**
@@ -60,6 +63,10 @@ public interface EventBusConfiguration {
      */
     default DynamicClassLoader classLoader() {
         return DEFAULT.classLoader();
+    }
+
+    default ExecutorService executorService() {
+        return ForkJoinPool.commonPool();
     }
 
 }

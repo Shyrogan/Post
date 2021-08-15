@@ -28,6 +28,7 @@ public class DynamicClassLoader extends ClassLoader {
      * Tries to find a already loaded class in the class loader.
      *
      * @param className The classes name.
+     *
      * @return The class.
      */
     public Optional<Class<?>> lookForClass(String className) {
@@ -38,14 +39,16 @@ public class DynamicClassLoader extends ClassLoader {
      * Loads a class by the class name and the bytecode.
      *
      * @param className The classes name.
-     * @param bytecode The classes bytecode.
+     * @param bytecode  The classes bytecode.
+     *
      * @return The class.
+     *
      * @see ClassLoader#defineClass(String, byte[], int, int)
      */
-    public Class<?> createClass(String className, byte[] bytecode)  {
+    public Class<?> createClass(String className, byte[] bytecode) {
         try {
             return this.defineClass(className, bytecode, 0, bytecode.length);
-        } catch (LinkageError e){
+        } catch (LinkageError e) {
             return this.findLoadedClass(className);
         }
     }

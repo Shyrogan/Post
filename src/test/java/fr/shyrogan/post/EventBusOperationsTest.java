@@ -1,8 +1,8 @@
 package fr.shyrogan.post;
 
-import fr.shyrogan.post.receiver.annotation.Subscribe;
-import fr.shyrogan.post.receiver.Receiver;
-import fr.shyrogan.post.receiver.ReceiverBuilder;
+import fr.shyrogan.post.listener.Listener;
+import fr.shyrogan.post.listener.ListenerBuilder;
+import fr.shyrogan.post.listener.annotation.Subscribe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,8 +61,8 @@ public class EventBusOperationsTest {
         };
 
         @Subscribe
-        public final Receiver<String> myReceiver = new ReceiverBuilder<>(String.class)
-                .withPriority(10)
+        public final Listener<String> myListener = new ListenerBuilder<>(String.class)
+                .priority(10)
                 .perform(s -> {
                     hasReceivedMessageOnBuilder = true;
                     last = "Builder";

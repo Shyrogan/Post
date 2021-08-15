@@ -8,7 +8,7 @@
 
 Using modern technologies such as [ASM](https://asm.ow2.io/),
 the Post Event Bus manages to reduce the cost of message dispatching.  
-It also adapts to certain specific situations (Such as publishing the message to one/none receivers).
+It also adapts to certain specific situations (Such as publishing the message to one/none listeners).
 
  ## Installation
 
@@ -33,7 +33,7 @@ Once the library is installed, you simply need to create the EventBus instance:
 ````java
 final EventBus bus = new EventBus(/** Your configuration (if you have one) goes here**/);
 ````
-Create your class containing your receivers:
+Create your class containing your listeners:
 ````java
 public class MyReceivers {
     @Subscribe

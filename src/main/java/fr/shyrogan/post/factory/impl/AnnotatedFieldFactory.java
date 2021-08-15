@@ -1,10 +1,10 @@
 package fr.shyrogan.post.factory.impl;
 
 import fr.shyrogan.post.configuration.EventBusConfiguration;
-import fr.shyrogan.post.receiver.annotation.Subscribe;
+import fr.shyrogan.post.listener.Listener;
+import fr.shyrogan.post.listener.annotation.Subscribe;
 import fr.shyrogan.post.factory.ReceiverFactory;
-import fr.shyrogan.post.receiver.Receiver;
-import fr.shyrogan.post.receiver.ReceiverBuilder;
+import fr.shyrogan.post.listener.ListenerBuilder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import static java.util.stream.Collectors.toList;
 
 /**
- * This {@link ReceiverFactory} looks for each field type {@link Receiver} or
+ * This {@link ReceiverFactory} looks for each field type {@link Listener} or
  * annotated {@link Consumer}.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -31,7 +31,7 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
      * @return The receivers found.
      */
     @Override
-    public List<Receiver> lookInto(Object object, EventBusConfiguration configuration) {
+    public List<Listener> lookInto(Object object, EventBusConfiguration configuration) {
         return Arrays.stream(object.getClass().getDeclaredFields())
                 .map(f -> toReceiver(f, object))
                 .filter(Objects::nonNull)
@@ -44,13 +44,13 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
      * @param field The field.
      * @return The field mapped to a receiver (if it was possible) or null.
      */
-    private static Receiver toReceiver(Field field, Object instance) {
+    private static Listener toReceiver(Field field, Object instance) {
         Subscribe annotation = field.getAnnotation(Subscribe.class);
         if(annotation == null) return null;
-        if(Receiver.class.isAssignableFrom(field.getType())) {
+        if(Listener.class.isAssignableFrom(field.getType())) {
             if(!field.isAccessible()) field.setAccessible(true);
             try {
-                return (Receiver)field.get(instance);
+                return (Listener)field.get(instance);
             } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
@@ -58,8 +58,8 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
             if(!field.isAccessible()) field.setAccessible(true);
             try {
                 // Savage solution but, would work, I guess.
-                return new ReceiverBuilder((Class) ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0])
-                        .withPriority(annotation.priority())
+                return new ListenerBuilder((Class) ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0])
+                        .priority(annotation.priority())
                         .perform((Consumer)field.get(instance))
                         .build();
             } catch (ReflectiveOperationException e) {

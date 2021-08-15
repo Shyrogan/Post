@@ -1,4 +1,4 @@
-package fr.shyrogan.post.receiver.annotation;
+package fr.shyrogan.post.listener.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

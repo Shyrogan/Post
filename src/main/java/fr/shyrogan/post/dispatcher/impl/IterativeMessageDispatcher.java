@@ -1,7 +1,7 @@
 package fr.shyrogan.post.dispatcher.impl;
 
 import fr.shyrogan.post.dispatcher.MessageDispatcher;
-import fr.shyrogan.post.receiver.Receiver;
+import fr.shyrogan.post.listener.Listener;
 
 import java.util.ArrayList;
 
@@ -11,18 +11,18 @@ import java.util.ArrayList;
 @SuppressWarnings("ALL")
 public final class IterativeMessageDispatcher implements MessageDispatcher {
 
-    private final int size;
-    private final ArrayList<Receiver> receivers;
+    private final int                 size;
+    private final ArrayList<Listener> listeners;
 
-    public IterativeMessageDispatcher(int size, ArrayList<Receiver> receivers) {
-        this.size = size;
-        this.receivers = receivers;
+    public IterativeMessageDispatcher(int size, ArrayList<Listener> listeners) {
+        this.size      = size;
+        this.listeners = listeners;
     }
 
     @Override
     public void dispatch(Object message) {
         for(int i = 0; i < size; i++) {
-            receivers.get(i).onReceive(message);
+            listeners.get(i).receive(message);
         }
     }
 

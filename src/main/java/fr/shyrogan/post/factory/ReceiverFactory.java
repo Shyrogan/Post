@@ -1,7 +1,7 @@
 package fr.shyrogan.post.factory;
 
 import fr.shyrogan.post.configuration.EventBusConfiguration;
-import fr.shyrogan.post.receiver.Receiver;
+import fr.shyrogan.post.listener.Listener;
 
 import java.util.List;
 
@@ -20,6 +20,6 @@ public interface ReceiverFactory {
      * @param configuration The event bus configuration.
      * @return A list of each receiver.
      */
-    List<Receiver> lookInto(Object object, EventBusConfiguration configuration);
+    List<Listener> lookInto(Object object, EventBusConfiguration configuration);
 
 }

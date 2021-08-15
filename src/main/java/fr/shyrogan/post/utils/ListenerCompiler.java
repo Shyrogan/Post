@@ -1,11 +1,10 @@
 package fr.shyrogan.post.utils;
 
-import fr.shyrogan.post.receiver.Receiver;
+import fr.shyrogan.post.listener.Listener;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 
@@ -17,14 +16,14 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 /**
  * Returns whether
  */
-public class ReceiverCompiler {
+public class ListenerCompiler {
 
     /** The object type name **/
     private final static String OBJECT_TYPE = "java/lang/Object";
     /** The class type name **/
     private final static String CLASS_TYPE = "java/lang/Class";
     /** The receiver type name **/
-    private final static String RECEIVER_TYPE = getTypeName(Receiver.class);
+    private final static String RECEIVER_TYPE = getTypeName(Listener.class);
 
     /**
      * Generates a receiver implementation that calls specified method.
@@ -46,7 +45,7 @@ public class ReceiverCompiler {
      * @param method The method type.
      * @return A receiver implementation compiled on the fly.
      */
-    public static byte[] forMethod(String generatedClassName, Class<?> parent, Class<?> topic, Method method) {
+    public static byte[] byteCode(String generatedClassName, Class<?> parent, Class<?> topic, Method method) {
         // A bench of utilities required later
         String parentType = getTypeName(parent);
         String topicType = getTypeName(topic);
@@ -110,7 +109,7 @@ public class ReceiverCompiler {
         INIT_METHOD.instructions.add(new InsnNode(RETURN));
 
         // Implements the getTopic() method using the topic field.
-        MethodNode GET_TOPIC_METHOD = new MethodNode(ACC_PUBLIC, "getTopic",
+        MethodNode GET_TOPIC_METHOD = new MethodNode(ACC_PUBLIC, "topic",
                 "()L" + CLASS_TYPE + ';', "()L" + CLASS_TYPE + "<L" + topicType + ";>;",
                 null
         );
@@ -119,13 +118,13 @@ public class ReceiverCompiler {
         GET_TOPIC_METHOD.instructions.add(new InsnNode(ARETURN));
 
         // Implements the getTopic() method using the topic field.
-        MethodNode GET_PRIORITY_METHOD = new MethodNode(ACC_PUBLIC, "getPriority", "()I", null, null);
+        MethodNode GET_PRIORITY_METHOD = new MethodNode(ACC_PUBLIC, "priority", "()I", null, null);
         GET_PRIORITY_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         GET_PRIORITY_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "priority", "I"));
         GET_PRIORITY_METHOD.instructions.add(new InsnNode(IRETURN));
 
         // Implements the onReceive(T) method.
-        MethodNode CALL_METHOD = new MethodNode(ACC_PUBLIC, "onReceive", "(L" + topicType + ";)V", null, null);
+        MethodNode CALL_METHOD = new MethodNode(ACC_PUBLIC, "receive", "(L" + topicType + ";)V", null, null);
         if(isStatic(method.getModifiers())) {
             // If its static, there are less instructions to call it.
             CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
@@ -141,11 +140,12 @@ public class ReceiverCompiler {
         }
 
         // Casts the type and then call.
-        MethodNode CASTED_CALL_METHOD = new MethodNode(ACC_PUBLIC, "onReceive", "(L" + OBJECT_TYPE + ";)V", null, null);
+        MethodNode CASTED_CALL_METHOD = new MethodNode(ACC_PUBLIC, "receive", "(L" + OBJECT_TYPE + ";)V", null, null);
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
         CASTED_CALL_METHOD.instructions.add(new TypeInsnNode(CHECKCAST, topicType));
-        CASTED_CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, generatedClassName, "onReceive", "(L" + topicType + ";)V", false));
+        CASTED_CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, generatedClassName, "receive",
+                "(L" + topicType + ";)V", false));
         CASTED_CALL_METHOD.instructions.add(new InsnNode(RETURN));
 
         // Put them all together
