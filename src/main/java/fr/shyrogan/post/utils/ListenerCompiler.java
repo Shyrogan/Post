@@ -19,59 +19,48 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 public class ListenerCompiler {
 
     /** The object type name **/
-    private final static String OBJECT_TYPE = "java/lang/Object";
+    private final static String OBJECT_TYPE   = "java/lang/Object";
     /** The class type name **/
-    private final static String CLASS_TYPE = "java/lang/Class";
+    private final static String CLASS_TYPE    = "java/lang/Class";
     /** The receiver type name **/
     private final static String RECEIVER_TYPE = getTypeName(Listener.class);
 
     /**
      * Generates a receiver implementation that calls specified method.
-     * The class output looks like this (kinda):
-     * <p>
-     *     fields for parent, topic, priority
-     *
-     *     constructor(Parent, Topic, Priority): assigns the value to each field
-     *
-     *     getTopic(): return topic
-     *     getPriority(): return priority
-     *     call(T): calls the method
-     *     call(Object): A simple method that check cast if the object is T and then calls call(T)
-     * </p>
+     * <p>{@code fields for parent, topic, priority}</p>
+     * <p>{@code constructor(Parent, Topic, Priority)}</p>
+     * <p>{@code topic() => returns topic}</p>
+     * <p>{@code priority() => return priority}</p>
+     * <p>{@code receive(T) => invokes the method using invokevirtual}</p>
+     * <p>{@code receive(Object) => casts the object to T then invokes receive(T)}</p>
      *
      * @param generatedClassName The generated class name.
-     * @param parent The parent type.
-     * @param topic The topic type.
-     * @param method The method type.
+     * @param parent             The parent type.
+     * @param topic              The topic type.
+     * @param method             The method type.
+     *
      * @return A receiver implementation compiled on the fly.
      */
     public static byte[] byteCode(String generatedClassName, Class<?> parent, Class<?> topic, Method method) {
         // A bench of utilities required later
         String parentType = getTypeName(parent);
-        String topicType = getTypeName(topic);
+        String topicType  = getTypeName(topic);
 
         ClassNode NODE = new ClassNode();
-        NODE.visit(V1_8, ACC_PUBLIC + ACC_SUPER,
-                generatedClassName,
-                'L' + OBJECT_TYPE + ";L" + RECEIVER_TYPE + "<L" + topicType + ";>;",
-                OBJECT_TYPE,
-                new String[] {RECEIVER_TYPE}
+        NODE.visit(V1_8, ACC_PUBLIC + ACC_SUPER, generatedClassName,
+                   'L' + OBJECT_TYPE + ";L" + RECEIVER_TYPE + "<L" + topicType + ";>;", OBJECT_TYPE,
+                   new String[] { RECEIVER_TYPE }
         );
-        NODE.fields = new ArrayList<>();
+        NODE.fields  = new ArrayList<>();
         NODE.methods = new ArrayList<>();
 
         //<editor-fold desc="Fields">
         // The parent field
-        FieldNode PARENT_FIELD = new FieldNode(
-                ACC_PRIVATE + ACC_FINAL, "parent", 'L' + parentType + ';',
-                null, null
-        );
+        FieldNode PARENT_FIELD = new FieldNode(ACC_PRIVATE + ACC_FINAL, "parent", 'L' + parentType + ';', null, null);
 
         // The topic field
-        FieldNode TOPIC_FIELD = new FieldNode(
-                ACC_PRIVATE + ACC_FINAL, "topic", 'L' + CLASS_TYPE + ";",
-                'L' + CLASS_TYPE + "<L" + topicType + ";>;",
-                null
+        FieldNode TOPIC_FIELD = new FieldNode(ACC_PRIVATE + ACC_FINAL, "topic", 'L' + CLASS_TYPE + ";",
+                                              'L' + CLASS_TYPE + "<L" + topicType + ";>;", null
         );
 
         // The priority field
@@ -85,10 +74,8 @@ public class ListenerCompiler {
 
         //<editor-fold desc="Methods">
         // Builds a constructor to create our receiver using the (Parent, Topic, Priority) parameters.
-        MethodNode INIT_METHOD = new MethodNode(ACC_PUBLIC, "<init>",
-                "(L" + OBJECT_TYPE + ";L" + CLASS_TYPE + ";I)V",
-                "(L" + OBJECT_TYPE + ";L" + CLASS_TYPE + "<*>;I)V",
-                null
+        MethodNode INIT_METHOD = new MethodNode(ACC_PUBLIC, "<init>", "(L" + OBJECT_TYPE + ";L" + CLASS_TYPE + ";I)V",
+                                                "(L" + OBJECT_TYPE + ";L" + CLASS_TYPE + "<*>;I)V", null
         );
         INIT_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         INIT_METHOD.instructions.add(new MethodInsnNode(INVOKESPECIAL, OBJECT_TYPE, "<init>", "()V", false));
@@ -109,12 +96,12 @@ public class ListenerCompiler {
         INIT_METHOD.instructions.add(new InsnNode(RETURN));
 
         // Implements the getTopic() method using the topic field.
-        MethodNode GET_TOPIC_METHOD = new MethodNode(ACC_PUBLIC, "topic",
-                "()L" + CLASS_TYPE + ';', "()L" + CLASS_TYPE + "<L" + topicType + ";>;",
-                null
+        MethodNode GET_TOPIC_METHOD = new MethodNode(ACC_PUBLIC, "topic", "()L" + CLASS_TYPE + ';',
+                                                     "()L" + CLASS_TYPE + "<L" + topicType + ";>;", null
         );
         GET_TOPIC_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
-        GET_TOPIC_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "topic", 'L' + CLASS_TYPE + ';'));
+        GET_TOPIC_METHOD.instructions.add(
+                new FieldInsnNode(GETFIELD, generatedClassName, "topic", 'L' + CLASS_TYPE + ';'));
         GET_TOPIC_METHOD.instructions.add(new InsnNode(ARETURN));
 
         // Implements the getTopic() method using the topic field.
@@ -125,17 +112,20 @@ public class ListenerCompiler {
 
         // Implements the onReceive(T) method.
         MethodNode CALL_METHOD = new MethodNode(ACC_PUBLIC, "receive", "(L" + topicType + ";)V", null, null);
-        if(isStatic(method.getModifiers())) {
+        if (isStatic(method.getModifiers())) {
             // If its static, there are less instructions to call it.
             CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
-            CALL_METHOD.instructions.add(new MethodInsnNode(INVOKESTATIC, parentType, method.getName(), getMethodDescriptor(method), false));
+            CALL_METHOD.instructions.add(
+                    new MethodInsnNode(INVOKESTATIC, parentType, method.getName(), getMethodDescriptor(method), false));
             CALL_METHOD.instructions.add(new InsnNode(RETURN));
         } else {
             // If its static
             CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
-            CALL_METHOD.instructions.add(new FieldInsnNode(GETFIELD, generatedClassName, "parent", "L" + parentType + ";"));
+            CALL_METHOD.instructions.add(
+                    new FieldInsnNode(GETFIELD, generatedClassName, "parent", "L" + parentType + ";"));
             CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
-            CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, parentType, method.getName(), getMethodDescriptor(method)));
+            CALL_METHOD.instructions.add(
+                    new MethodInsnNode(INVOKEVIRTUAL, parentType, method.getName(), getMethodDescriptor(method)));
             CALL_METHOD.instructions.add(new InsnNode(RETURN));
         }
 
@@ -144,8 +134,8 @@ public class ListenerCompiler {
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 0));
         CASTED_CALL_METHOD.instructions.add(new VarInsnNode(ALOAD, 1));
         CASTED_CALL_METHOD.instructions.add(new TypeInsnNode(CHECKCAST, topicType));
-        CASTED_CALL_METHOD.instructions.add(new MethodInsnNode(INVOKEVIRTUAL, generatedClassName, "receive",
-                "(L" + topicType + ";)V", false));
+        CASTED_CALL_METHOD.instructions.add(
+                new MethodInsnNode(INVOKEVIRTUAL, generatedClassName, "receive", "(L" + topicType + ";)V", false));
         CASTED_CALL_METHOD.instructions.add(new InsnNode(RETURN));
 
         // Put them all together
@@ -166,6 +156,7 @@ public class ListenerCompiler {
      * Returns the type name.
      *
      * @param clazz The class.
+     *
      * @return The type name.
      */
     private static String getTypeName(Class<?> clazz) {
@@ -173,12 +164,13 @@ public class ListenerCompiler {
     }
 
     /**
-     * Gets a unique method name from a method instance.
-     * From Hippo on LWJEB.
-     * @see <a href="https://github.com/Hippo/LWJEB">LWJEB</a>
+     * Gets a unique method name from a method instance. From Hippo on LWJEB.
      *
-     * @param method  The method.
-     * @return  The unique name.
+     * @param method The method.
+     *
+     * @return The unique name.
+     *
+     * @see <a href="https://github.com/Hippo/LWJEB">LWJEB</a>
      */
     public static String getUniqueMethodName(Method method) {
         StringBuilder parameters = new StringBuilder();

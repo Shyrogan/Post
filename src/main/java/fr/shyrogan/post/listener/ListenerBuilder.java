@@ -101,9 +101,7 @@ public class ListenerBuilder<T> {
 
         @Override
         public String toString() {
-            return "NonFilteredReceiver{" +
-                    "topic=" + topic +
-                    ", priority=" + priority + '}';
+            return "NonFilteredReceiver{" + "topic=" + topic + ", priority=" + priority + '}';
         }
     }
 
@@ -142,9 +140,7 @@ public class ListenerBuilder<T> {
 
         @Override
         public String toString() {
-            return "FilteredReceiver{" +
-                    "topic=" + topic +
-                    ", priority=" + priority + '}';
+            return "FilteredReceiver{" + "topic=" + topic + ", priority=" + priority + '}';
         }
     }
 

@@ -35,10 +35,8 @@ public enum AnnotatedMethodFactory implements ReceiverFactory {
      */
     @Override
     public List<Listener> lookInto(Object object, EventBusConfiguration configuration) {
-        return Arrays.stream(object.getClass().getDeclaredMethods())
-                .map(m -> toReceiver(m, object, configuration))
-                .filter(Objects::nonNull)
-                .collect(toList());
+        return Arrays.stream(object.getClass().getDeclaredMethods()).map(m -> toReceiver(m, object, configuration))
+                     .filter(Objects::nonNull).collect(toList());
     }
 
     /**
@@ -55,11 +53,12 @@ public enum AnnotatedMethodFactory implements ReceiverFactory {
         String   generatedClassName = getUniqueMethodName(method);
 
         try {
-            return (Listener) configuration.classLoader()
-                    .lookForClass(generatedClassName)
-                    .orElse(configuration.classLoader().createClass(generatedClassName, byteCode(generatedClassName, instance.getClass(), topicType, method)))
-                    .getDeclaredConstructor(Object.class, Class.class, int.class)
-                    .newInstance(instance, topicType, annotation.priority());
+            return (Listener) configuration.classLoader().lookForClass(generatedClassName)
+                                           .orElse(configuration.classLoader().createClass(
+                                                   generatedClassName,
+                                                   byteCode(generatedClassName, instance.getClass(), topicType, method)
+                                           )).getDeclaredConstructor(Object.class, Class.class, int.class)
+                                           .newInstance(instance, topicType, annotation.priority());
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }

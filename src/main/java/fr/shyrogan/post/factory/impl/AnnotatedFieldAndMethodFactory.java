@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * This {@link ReceiverFactory} combines both {@link AnnotatedFieldFactory} and {@link AnnotatedMethodFactory}.
+ *
  * @see AnnotatedFieldFactory
  * @see AnnotatedMethodFactory
  */
@@ -21,6 +22,7 @@ public enum AnnotatedFieldAndMethodFactory implements ReceiverFactory {
      * Looks for the receiver fields.
      *
      * @param object The object.
+     *
      * @return The receivers found.
      */
     @Override

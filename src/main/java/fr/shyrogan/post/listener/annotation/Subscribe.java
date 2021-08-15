@@ -6,11 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used to mark an field/method that needs to be registered by the
- * {@link fr.shyrogan.post.factory.impl.AnnotatedFieldFactory}/{@link fr.shyrogan.post.factory.impl.AnnotatedMethodFactory}.
+ * Annotation used to mark an field/method that needs to be registered by the {@link
+ * fr.shyrogan.post.factory.impl.AnnotatedFieldFactory}/{@link fr.shyrogan.post.factory.impl.AnnotatedMethodFactory}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD})
+@Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Subscribe {
 
     /**

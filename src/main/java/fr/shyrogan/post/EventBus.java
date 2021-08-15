@@ -73,8 +73,8 @@ public class EventBus {
      */
     public EventBus subscribe(Listener listener) {
         configuration.executorService().submit(() -> {
-            ArrayList<Listener> registeredListeners = receiversMap
-                    .getOrDefault(listener.topic(), new ArrayList<>(configuration.initialReceiverListCapacity()));
+            ArrayList<Listener> registeredListeners = receiversMap.getOrDefault(
+                    listener.topic(), new ArrayList<>(configuration.initialReceiverListCapacity()));
             registeredListeners.add(listener);
             registeredListeners.sort(comparingInt(r -> -r.priority()));
             receiversMap.put(listener.topic(), registeredListeners);
@@ -130,7 +130,8 @@ public class EventBus {
                     receiversMap.remove(listener.topic());
                     dispatcherMap.remove(listener.topic());
                 } else {
-                    dispatcherMap.put(listener.topic(), configuration.dispatcherFor(receiversMap.get(listener.topic())));
+                    dispatcherMap.put(
+                            listener.topic(), configuration.dispatcherFor(receiversMap.get(listener.topic())));
                 }
             }
         });
@@ -157,9 +158,7 @@ public class EventBus {
      * @param message Message.
      */
     public void dispatch(Object message) {
-        dispatcherMap
-                .get(message.getClass())
-                .dispatch(message);
+        dispatcherMap.get(message.getClass()).dispatch(message);
     }
 
     /**
@@ -178,13 +177,10 @@ public class EventBus {
      */
     @Override
     public String toString() {
-        final String values = receiversMap.entrySet().stream()
-                .map(e ->
-                        e.getKey().getSimpleName() + "=" + e.getValue().stream()
-                                .map(Listener::toString)
-                                .collect(joining(","))
-                )
-                .collect(joining(", ", "{", "}"));
+        final String values = receiversMap.entrySet().stream().map(e -> e.getKey().getSimpleName() + "=" +
+                                                                        e.getValue().stream().map(Listener::toString)
+                                                                         .collect(joining(",")))
+                                          .collect(joining(", ", "{", "}"));
 
         return "EventBus{" + "receivers=" + values + '}';
     }
