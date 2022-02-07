@@ -35,8 +35,20 @@ public enum AnnotatedMethodFactory implements ReceiverFactory {
      */
     @Override
     public List<Listener> lookInto(Object object, EventBusConfiguration configuration) {
-        return Arrays.stream(object.getClass().getDeclaredMethods()).map(m -> toReceiver(m, object, configuration))
-                     .filter(Objects::nonNull).collect(toList());
+        List<Listener> list = new ArrayList<>();
+
+        Class<?> currentClass = object.getClass();
+        do {
+            list.addAll(
+                    Arrays.stream(currentClass.getDeclaredMethods())
+                            .map(m -> toReceiver(m, object, configuration))
+                            .filter(Objects::nonNull).collect(toList())
+            );
+
+            currentClass = currentClass.getSuperclass();
+        } while (currentClass != Object.class);
+
+        return list;
     }
 
     /**
