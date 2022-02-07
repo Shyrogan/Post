@@ -32,7 +32,7 @@ public enum AnnotatedFieldFactory implements ReceiverFactory {
      */
     @Override
     public List<Listener> lookInto(Object object, EventBusConfiguration configuration) {
-        List<Receiver> list = new ArrayList<>();
+        List<Listener> list = new ArrayList<>();
 
         Class<?> currentClass = object.getClass();
         do {
